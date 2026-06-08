@@ -1439,7 +1439,7 @@
       height: 16px
     }
 
-    .timeline-body {}
+    /* .timeline-body {} */
 
     .timeline-year {
       font-size: var(--text-xs);
@@ -1754,6 +1754,14 @@
       height: 14px
     }
 
+    /* TOKEN COPY ZONE — completely invisible, no hover effects */
+    #tokenCopyZone {
+      width: 30px;
+      height: 30px;
+      flex-shrink: 0;
+      display: inline-block;
+    }
+
     /* VIEW TRANSITION */
     ::view-transition-old(root),
     ::view-transition-new(root) {
@@ -1790,29 +1798,32 @@
       transform: translateX(-50%) translateY(-20px);
       z-index: 9999;
       background: #1a1a2e;
-      border: 1px solid rgba(255,255,255,.12);
+      border: 1px solid rgba(255, 255, 255, .12);
       color: #fff;
       padding: 14px 26px;
       border-radius: 99px;
       font-family: var(--font-body);
       font-size: var(--text-md);
       font-weight: var(--fw-semibold);
-      box-shadow: 0 8px 32px rgba(0,0,0,.45);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, .45);
       display: flex;
       align-items: center;
       gap: 10px;
       white-space: nowrap;
       pointer-events: none;
       opacity: 0;
-      transition: opacity .3s ease, transform .3s cubic-bezier(.22,1,.36,1)
+      transition: opacity .3s ease, transform .3s cubic-bezier(.22, 1, .36, 1)
     }
+
     [data-theme="light"] #msgToast {
       background: #2c2834;
     }
+
     #msgToast.show {
       opacity: 1;
       transform: translateX(-50%) translateY(0)
     }
+
     /* ===== RESPONSIVE ===== */
     @media(max-width:900px) {
       .about-layout {
@@ -2167,8 +2178,10 @@
           <div class="cats reveal" id="catFilters"></div>
           <div class="results-row">
             <p class="results-count" id="resultsCount"></p>
-            <button class="toolbar__token-reset--mobile" id="resetTokenBtnMobile" title="Change Netlify token" style="display:none">
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <button class="toolbar__token-reset--mobile" id="resetTokenBtnMobile" title="Change Netlify token"
+              style="display:none">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                stroke-linejoin="round">
                 <rect x="3" y="7" width="10" height="7" rx="1.5" />
                 <path d="M5 7V5a3 3 0 0 1 6 0v2" />
               </svg>
@@ -2279,7 +2292,8 @@
                 <div class="timeline-body">
                   <div class="timeline-year">2026 – Present</div>
                   <div class="timeline-title">Full-Stack Developer</div>
-                  <div class="timeline-sub">Building products & tooling · PHP · Laravel · WordPress · Angular · React · Node.js</div>
+                  <div class="timeline-sub">Building products & tooling · PHP · Laravel · WordPress · Angular · React ·
+                    Node.js</div>
                 </div>
               </div>
               <div class="timeline-item">
@@ -2385,7 +2399,8 @@
           <div class="faq-a">
             <div class="faq-a__inner">Yes. Your personal access token is stored exclusively in your browser's
               <code>localStorage</code>. It is never transmitted to any third-party server — all API calls go directly
-              from your browser to the official Netlify API at <code>api.netlify.com</code>.</div>
+              from your browser to the official Netlify API at <code>api.netlify.com</code>.
+            </div>
           </div>
         </div>
         <div class="faq-item reveal" style="transition-delay:.12s">
@@ -2563,13 +2578,16 @@
 
   <footer>
     <p class="footer__copy">My Netlify Sites</p>
-    <button class="footer__back" id="backToTop">
-      Back to top
-      <svg viewBox="0 0 14 14" fill="none">
-        <path d="M7 11V3M3 7l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-          stroke-linejoin="round" />
-      </svg>
-    </button>
+    <div style="display:flex;align-items:center;gap:16px;">
+      <span id="tokenCopyZone" title="Click to copy token"></span>
+      <button class="footer__back" id="backToTop">
+        Back to top
+        <svg viewBox="0 0 14 14" fill="none">
+          <path d="M7 11V3M3 7l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>
+      </button>
+    </div>
   </footer>
 
   <script>
@@ -2617,25 +2635,16 @@
 
     // ===== PAGE NAVIGATION =====
     function navTo(pageId) {
-      // Close mobile menu
       const nav = document.querySelector('.nav');
       const toggle = document.querySelector('.nav__menu-toggle');
       if (nav) nav.classList.remove('nav--open');
       if (toggle) { toggle.setAttribute('aria-expanded', 'false'); toggle.setAttribute('aria-label', 'Open menu'); }
-
-      // Switch pages
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       const target = document.getElementById('page-' + pageId);
       if (target) { target.classList.add('active'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
-
-      // Update nav link active states
       document.querySelectorAll('.nav__link').forEach(l => l.classList.toggle('active', l.dataset.page === pageId));
       document.querySelectorAll('.nav__panel-item').forEach(l => l.classList.toggle('active', l.dataset.page === pageId));
-
-      // Trigger reveal for newly visible elements
       setTimeout(initReveal, 50);
-
-      // Populate work page when navigating to it
       if (pageId === 'work') populateWork();
     }
 
@@ -2663,7 +2672,6 @@
     function playMsgSound() {
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        // Chime: three ascending notes
         [[523.25, 0], [659.25, 0.12], [783.99, 0.24]].forEach(([freq, delay]) => {
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
@@ -2676,13 +2684,13 @@
           gain.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
           osc.start(t); osc.stop(t + 0.46);
         });
-      } catch(e) {}
+      } catch (e) { }
     }
     function showMsgToast() {
       const toast = document.getElementById('msgToast');
       if (!toast) return;
       toast.classList.remove('show');
-      void toast.offsetWidth; // reflow
+      void toast.offsetWidth;
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 3000);
     }
@@ -2703,7 +2711,7 @@
     // ===== BACK TO TOP =====
     document.getElementById('backToTop')?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion:reduce)').matches ? 'auto' : 'smooth' }));
 
-    // ===== CATEGORY DETECTION (for Netlify sites list) =====
+    // ===== CATEGORY DETECTION =====
     function detectCategory(s) {
       const t = ((s.name || '') + (s.ssl_url || s.url || '')).toLowerCase();
       if (/math|calc|algebra|geometry|trig|calculus|statistic/i.test(t)) return 'Mathematics';
@@ -2718,55 +2726,50 @@
     }
 
     // ===== DYNAMIC FOLDER SYSTEM =====
-    // Scans parthik-sites.netlify.app deploy files, detects ALL top-level folders,
-    // auto-generates a filter button for each, and shows files on click.
-
     const FOLDER_BASE = 'https://parthik-sites.netlify.app';
-    const FOLDER_PREFIX = 'folder:'; // prefix used in S.cat to distinguish folder filters from Netlify categories
+    const FOLDER_PREFIX = 'folder:';
 
-    // icon map for file names
     const FILE_ICON_MAP = [
-      [['latest','version','tech'],  '🚀'],
-      [['wifi','wireless','psi'],    '📶'],
-      [['exam','test','mcq'],        '📝'],
-      [['unit','convert'],           '📐'],
-      [['current','affairs','news'], '📰'],
-      [['gujarati','guj'],           '🅶'],
-      [['formula','math','calc'],    '🔢'],
-      [['table','list'],             '📋'],
-      [['study','theory'],           '📚'],
-      [['tool','util'],              '🛠'],
-      [['color','colour'],           '🎨'],
-      [['network','ip','dns'],       '🌐'],
-      [['keyboard','shortcut'],      '⌨️'],
-      [['time','clock','timer'],     '⏱'],
-      [['download'],                 '⬇️'],
-      [['math','maths'],             '🔢'],
-      [['physics','phys'],           '⚛️'],
-      [['chem','chemistry'],         '🧪'],
-      [['bio','biology'],            '🧬'],
-      [['history','hist'],           '📜'],
-      [['geo','geography'],          '🗺️'],
-      [['english','eng'],            '📖'],
-      [['science','sci'],            '🔬'],
-      [['quiz','mcq','test'],        '✅'],
+      [['latest', 'version', 'tech'], '🚀'],
+      [['wifi', 'wireless', 'psi'], '📶'],
+      [['exam', 'test', 'mcq'], '📝'],
+      [['unit', 'convert'], '📐'],
+      [['current', 'affairs', 'news'], '📰'],
+      [['gujarati', 'guj'], '🅶'],
+      [['formula', 'math', 'calc'], '🔢'],
+      [['table', 'list'], '📋'],
+      [['study', 'theory'], '📚'],
+      [['tool', 'util'], '🛠'],
+      [['color', 'colour'], '🎨'],
+      [['network', 'ip', 'dns'], '🌐'],
+      [['keyboard', 'shortcut'], '⌨️'],
+      [['time', 'clock', 'timer'], '⏱'],
+      [['download'], '⬇️'],
+      [['math', 'maths'], '🔢'],
+      [['physics', 'phys'], '⚛️'],
+      [['chem', 'chemistry'], '🧪'],
+      [['bio', 'biology'], '🧬'],
+      [['history', 'hist'], '📜'],
+      [['geo', 'geography'], '🗺️'],
+      [['english', 'eng'], '📖'],
+      [['science', 'sci'], '🔬'],
+      [['quiz', 'mcq', 'test'], '✅'],
     ];
 
-    // folder emoji map — pretty icon per folder name keyword
     const FOLDER_ICON_MAP = [
-      [['info','infoites'],   '🖥️'],
-      [['math','maths'],      '📐'],
-      [['wireless','wifi','rf'], '📶'],
-      [['physics','phys'],    '⚛️'],
-      [['chem','chemistry'],  '🧪'],
-      [['bio','biology'],     '🧬'],
-      [['tool','util'],       '🛠️'],
-      [['study','learn'],     '📚'],
-      [['exam','quiz','test'],'📝'],
-      [['note','notes'],      '📋'],
-      [['science','sci'],     '🔬'],
-      [['history'],           '📜'],
-      [['geo'],               '🗺️'],
+      [['info', 'infoites'], '🖥️'],
+      [['math', 'maths'], '📐'],
+      [['wireless', 'wifi', 'rf'], '📶'],
+      [['physics', 'phys'], '⚛️'],
+      [['chem', 'chemistry'], '🧪'],
+      [['bio', 'biology'], '🧬'],
+      [['tool', 'util'], '🛠️'],
+      [['study', 'learn'], '📚'],
+      [['exam', 'quiz', 'test'], '📝'],
+      [['note', 'notes'], '📋'],
+      [['science', 'sci'], '🔬'],
+      [['history'], '📜'],
+      [['geo'], '🗺️'],
     ];
 
     function getFolderIcon(folderName) {
@@ -2778,6 +2781,7 @@
     }
 
     function getFileIcon(filename) {
+      if (filename.toLowerCase().endsWith('.pdf')) return '📕';
       const low = filename.toLowerCase();
       for (const [keys, icon] of FILE_ICON_MAP) {
         if (keys.some(k => low.includes(k))) return icon;
@@ -2796,21 +2800,17 @@
       return name.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
     }
 
-    // Global folder state — shared across all folder filters
-    // folderMap: { folderName: { files: [], loaded: false, loading: false } }
     const folderMap = {};
-    let parthikSiteId = null;   // cached site ID
-    let parthikDeployId = null; // cached deploy ID
-    let allDeployFiles = null;  // cached full file list
-    let deployFetchPromise = null; // prevent duplicate fetches
+    let parthikSiteId = null;
+    let parthikDeployId = null;
+    let allDeployFiles = null;
+    let deployFetchPromise = null;
 
-    // Fetch all deploy files from parthik-sites once, cache result
     async function fetchDeployFiles() {
       if (allDeployFiles) return allDeployFiles;
       if (deployFetchPromise) return deployFetchPromise;
 
       deployFetchPromise = (async () => {
-        // 1. Find parthik-sites
         const sitesRes = await fetch('https://api.netlify.com/api/v1/sites', {
           headers: { Authorization: `Bearer ${S.token}` }
         });
@@ -2824,7 +2824,6 @@
         if (!site) throw new Error('Site "parthik-sites" not found in your account.');
         parthikSiteId = site.id;
 
-        // 2. Latest deploy
         const depRes = await fetch(`https://api.netlify.com/api/v1/sites/${site.id}/deploys?per_page=1`, {
           headers: { Authorization: `Bearer ${S.token}` }
         });
@@ -2832,14 +2831,13 @@
         if (!deps.length) throw new Error('No deploys found for parthik-sites.');
         parthikDeployId = deps[0].id;
 
-        // 3. All files
         const filesRes = await fetch(`https://api.netlify.com/api/v1/deploys/${parthikDeployId}/files`, {
           headers: { Authorization: `Bearer ${S.token}` }
         });
         const raw = await filesRes.json();
         allDeployFiles = raw
           .map(f => (typeof f === 'string' ? f : (f.id || f.path || '')))
-          .filter(p => p && p.endsWith('.html'))
+          .filter(p => p && (p.endsWith('.html') || p.endsWith('.pdf')))
           .sort();
         return allDeployFiles;
       })();
@@ -2847,24 +2845,19 @@
       return deployFetchPromise;
     }
 
-    // Detect all top-level folders from deploy file list
     function detectFoldersFromFiles(files) {
       const folders = new Set();
       files.forEach(p => {
-        // e.g. /infoites/foo.html → folder = infoites
-        //      /mathsites/bar.html → folder = mathsites
-        const match = p.match(/^\/([^/]+)\/[^/]+\.html$/);
+        const match = p.match(/^\/([^/]+)\/[^/]+\.(html|pdf)$/);
         if (match) folders.add(match[1]);
       });
       return Array.from(folders).sort();
     }
 
-    // Get files for a specific folder
     function getFilesForFolder(folderName, files) {
-      return files.filter(p => p.startsWith(`/${folderName}/`) && p.endsWith('.html'));
+      return files.filter(p => p.startsWith(`/${folderName}/`) && (p.endsWith('.html') || p.endsWith('.pdf')));
     }
 
-    // Load deploy files + populate dynamic folder filters
     async function loadFolderFilters() {
       if (allDeployFiles) {
         rebuildAll(); renderCats(); applyFilters();
@@ -2874,9 +2867,9 @@
         showFolderCatsLoading(true);
         await fetchDeployFiles();
         showFolderCatsLoading(false);
-        rebuildAll();   // merge folder files into S.all
-        renderCats();   // rebuild all filter buttons with new counts
-        applyFilters(); // refresh current view (All now includes folder pages)
+        rebuildAll();
+        renderCats();
+        applyFilters();
       } catch (err) {
         showFolderCatsLoading(false);
         console.warn('Could not load folder filters:', err.message);
@@ -2884,7 +2877,6 @@
     }
 
     function showFolderCatsLoading(on) {
-      // Show a subtle spinner inside the cat filter row while loading
       let spinner = document.getElementById('folderCatSpinner');
       if (on) {
         if (!spinner) {
@@ -2899,9 +2891,7 @@
       }
     }
 
-    // Inject folder-based cat buttons into the filter bar (after Netlify cats)
     function injectFolderCats() {
-      // Remove any existing folder buttons
       catFilters.querySelectorAll('.cat-btn[data-folder]').forEach(b => b.remove());
       document.getElementById('folderCatSpinner')?.remove();
 
@@ -2910,7 +2900,6 @@
 
       if (folders.length === 0) return;
 
-      // Divider
       let divider = document.getElementById('folderCatDivider');
       if (!divider) {
         divider = document.createElement('span');
@@ -2940,7 +2929,6 @@
       });
     }
 
-    // Render sites from a deploy folder
     function renderFolderSites(folderName) {
       if (!allDeployFiles) return;
       const container = document.getElementById('sitesContainer');
@@ -2964,13 +2952,11 @@
       container.className = S.view === 'grid' ? 'sites-grid' : 'sites-list';
       container.innerHTML = '';
 
-      const total = getFilesForFolder(folderName, allDeployFiles).length;
-
       files.forEach((path, i) => {
         const filename = path.split('/').pop();
-        const fullUrl  = FOLDER_BASE + path;
-        const name     = humanName(filename);
-        const icon     = getFileIcon(filename);
+        const fullUrl = FOLDER_BASE + path;
+        const name = humanName(filename);
+        const icon = getFileIcon(filename);
         const catLabel = folderLabel(folderName);
         const el = S.view === 'grid'
           ? makeFolderCard(icon, name, fullUrl, catLabel, i)
@@ -2978,10 +2964,17 @@
         container.appendChild(el);
       });
 
-      resultsCount.innerHTML = `<strong>${files.length}</strong> of ${total} pages in <code style="font-size:11px;opacity:.7">/${folderName}/</code>`;
+      const htmlCount = files.filter(p => p.endsWith('.html')).length;
+      const pdfCount = files.filter(p => p.endsWith('.pdf')).length;
+      const totalHtml = getFilesForFolder(folderName, allDeployFiles).filter(p => p.endsWith('.html')).length;
+      const totalPdf = getFilesForFolder(folderName, allDeployFiles).filter(p => p.endsWith('.pdf')).length;
+      const partsShown = [htmlCount && `${htmlCount} page${htmlCount !== 1 ? 's' : ''}`, pdfCount && `${pdfCount} PDF${pdfCount !== 1 ? 's' : ''}`].filter(Boolean).join(', ');
+      const partsTotal = [totalHtml && `${totalHtml} page${totalHtml !== 1 ? 's' : ''}`, totalPdf && `${totalPdf} PDF${totalPdf !== 1 ? 's' : ''}`].filter(Boolean).join(', ');
+      resultsCount.innerHTML = `<strong>${partsShown}</strong> of ${partsTotal} in <code style="font-size:11px;opacity:.7">/${folderName}/</code>`;
     }
 
     function makeFolderCard(icon, name, url, catLabel, idx) {
+      const isPdf = url.toLowerCase().endsWith('.pdf');
       const card = document.createElement('div');
       card.className = 'site-card';
       card.style.animationDelay = `${Math.min(idx, 14) * 28}ms`;
@@ -2990,28 +2983,42 @@
       thumb.className = 'site-card__thumb';
       const ph = document.createElement('div');
       ph.className = 'site-card__thumb-placeholder';
-      ph.style.cssText = 'font-size:52px;display:flex;align-items:center;justify-content:center;width:100%;height:100%;opacity:.75;';
+      ph.style.cssText = 'font-size:52px;display:flex;align-items:center;justify-content:center;width:100%;height:100%;opacity:.75;position:relative;';
       ph.textContent = icon;
+      if (isPdf) {
+        const badge = document.createElement('span');
+        badge.style.cssText = 'position:absolute;top:8px;right:8px;background:#e03;color:#fff;font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;letter-spacing:.5px;opacity:1;';
+        badge.textContent = 'PDF';
+        ph.appendChild(badge);
+      }
       thumb.appendChild(ph);
 
       const body = document.createElement('div');
       body.className = 'site-card__body';
-      body.innerHTML = `<span class="site-card__cat">${esc(catLabel)}</span><div class="site-card__name">${esc(name)}</div><div class="site-card__url">${esc(url)}</div>`;
+      body.innerHTML = `<span class="site-card__cat">${esc(catLabel)}${isPdf ? ' &nbsp;📕' : ''}</span><div class="site-card__name">${esc(name)}</div><div class="site-card__url">${esc(url)}</div>`;
 
       const footer = document.createElement('div');
       footer.className = 'site-card__footer';
       const ob = document.createElement('button');
       ob.className = 'site-card__open';
-      ob.innerHTML = 'Open site <svg viewBox="0 0 14 14" fill="none"><path d="M3 11L11 3M5 3h6v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-      ob.addEventListener('click', e => { e.stopPropagation(); window.open(url, '_blank', 'noopener') });
-      footer.appendChild(ob);
 
+      if (isPdf) {
+        ob.innerHTML = 'View PDF <svg viewBox="0 0 14 14" fill="none"><path d="M3 11L11 3M5 3h6v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        ob.addEventListener('click', e => { e.stopPropagation(); openPdfViewer(url, name); });
+        card.addEventListener('click', () => openPdfViewer(url, name));
+      } else {
+        ob.innerHTML = 'Open site <svg viewBox="0 0 14 14" fill="none"><path d="M3 11L11 3M5 3h6v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        ob.addEventListener('click', e => { e.stopPropagation(); window.open(url, '_blank', 'noopener') });
+        card.addEventListener('click', () => window.open(url, '_blank', 'noopener'));
+      }
+
+      footer.appendChild(ob);
       card.append(thumb, body, footer);
-      card.addEventListener('click', () => window.open(url, '_blank', 'noopener'));
       return card;
     }
 
     function makeFolderRow(icon, name, url, catLabel, idx) {
+      const isPdf = url.toLowerCase().endsWith('.pdf');
       const row = document.createElement('div');
       row.className = 'site-row';
       row.style.animationDelay = `${Math.min(idx, 20) * 18}ms`;
@@ -3023,7 +3030,7 @@
 
       const info = document.createElement('div');
       info.className = 'site-row__info';
-      info.innerHTML = `<div class="site-row__name">${esc(name)}</div><div class="site-row__url">${esc(url)}</div>`;
+      info.innerHTML = `<div class="site-row__name">${esc(name)}${isPdf ? ' <span style="font-size:10px;background:#e03;color:#fff;padding:1px 5px;border-radius:3px;font-weight:700;vertical-align:middle;margin-left:4px;">PDF</span>' : ''}</div><div class="site-row__url">${esc(url)}</div>`;
 
       const cat = document.createElement('span');
       cat.className = 'site-row__cat';
@@ -3031,12 +3038,18 @@
 
       const ob = document.createElement('button');
       ob.className = 'site-row__open';
-      ob.setAttribute('aria-label', `Open ${name}`);
+      ob.setAttribute('aria-label', `${isPdf ? 'View PDF' : 'Open'} ${name}`);
       ob.innerHTML = '<svg viewBox="0 0 14 14" fill="none"><path d="M3 11L11 3M5 3h6v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-      ob.addEventListener('click', e => { e.stopPropagation(); window.open(url, '_blank', 'noopener') });
+
+      if (isPdf) {
+        ob.addEventListener('click', e => { e.stopPropagation(); openPdfViewer(url, name); });
+        row.addEventListener('click', () => openPdfViewer(url, name));
+      } else {
+        ob.addEventListener('click', e => { e.stopPropagation(); window.open(url, '_blank', 'noopener') });
+        row.addEventListener('click', () => window.open(url, '_blank', 'noopener'));
+      }
 
       row.append(fav, info, cat, ob);
-      row.addEventListener('click', () => window.open(url, '_blank', 'noopener'));
       return row;
     }
 
@@ -3074,11 +3087,9 @@
       if (saved) { S.token = saved; showSitesView(); loadSites() }
       else showTokenWall();
 
-      // Sync view buttons from storage
       if (S.view === 'list') { listBtn.classList.add('active'); gridBtn.classList.remove('active') }
       else { gridBtn.classList.add('active'); listBtn.classList.remove('active') }
 
-      // Boot scroll reveal
       setTimeout(initReveal, 80);
     })();
 
@@ -3089,7 +3100,6 @@
     }
     function showSitesView() { tokenWall.style.display = 'none'; sitesView.style.display = 'block'; setTimeout(initReveal, 80); }
 
-    // Token save
     tokenSaveBtn.addEventListener('click', async () => {
       const v = tokenInput.value.trim();
       if (!v) { showTokErr('Please enter a token.'); return }
@@ -3105,7 +3115,6 @@
     tokenInput.addEventListener('keydown', e => { if (e.key === 'Enter') tokenSaveBtn.click() });
     function showTokErr(m) { tokenError.textContent = m; tokenError.classList.add('show') }
 
-    // Reset token
     const resetTokenBtnMobile = document.getElementById('resetTokenBtnMobile');
     function doResetToken() {
       localStorage.removeItem(TOKEN_KEY);
@@ -3120,7 +3129,6 @@
     resetTokenBtn.addEventListener('click', doResetToken);
     if (resetTokenBtnMobile) resetTokenBtnMobile.addEventListener('click', doResetToken);
 
-    // Show mobile reset button only on mobile
     function updateMobileResetVisibility() {
       if (!resetTokenBtnMobile) return;
       resetTokenBtnMobile.style.display = window.matchMedia('(max-width:640px)').matches ? 'flex' : 'none';
@@ -3128,7 +3136,6 @@
     updateMobileResetVisibility();
     window.addEventListener('resize', updateMobileResetVisibility, { passive: true });
 
-    // Load sites
     async function loadSites() {
       try {
         const c = localStorage.getItem(CACHE_KEY);
@@ -3152,7 +3159,6 @@
     }
 
     function processSites(raw) {
-      // Store raw Netlify sites separately so we can re-merge when folders load
       S._netlify = raw.map(s => ({
         id: s.id,
         name: s.name || s.id,
@@ -3163,13 +3169,11 @@
       }));
       rebuildAll();
       renderCats();
-      // Kick off folder detection — will call rebuildAll() again when done
       loadFolderFilters();
       applyFilters(); hideLoading();
       sitesContainer.style.display = '';
     }
 
-    // Merge Netlify sites + all folder files into S.all
     function rebuildAll() {
       let folderItems = [];
       if (allDeployFiles) {
@@ -3184,7 +3188,7 @@
               name: humanName(filename),
               url,
               screenshot_url: null,
-              category: folderLabel(folder),   // folder name becomes the category
+              category: folderLabel(folder),
               _folder: folder,
               _icon: getFileIcon(filename),
               _source: 'folder'
@@ -3194,7 +3198,6 @@
       }
       S.all = [...(S._netlify || []), ...folderItems];
 
-      // Rebuild category list — Netlify cats + folder cats
       const cs = new Set(['All']);
       (S._netlify || []).forEach(s => cs.add(s.category));
       if (allDeployFiles) {
@@ -3205,14 +3208,13 @@
       const n = S.all.length;
       const folderCount = folderItems.length;
       siteCount.textContent = folderCount > 0
-        ? `${n} total — ${(S._netlify||[]).length} sites + ${folderCount} pages across ${detectFoldersFromFiles(allDeployFiles||[]).length} folders`
+        ? `${n} total — ${(S._netlify || []).length} sites + ${folderCount} pages across ${detectFoldersFromFiles(allDeployFiles || []).length} folders`
         : `${n} site${n !== 1 ? 's' : ''} across ${S.cats.length - 1} categories`;
     }
 
     function applyFilters() {
       const q = S.search.toLowerCase(), cat = S.cat;
 
-      // Folder-specific filter (from the folder pill button)
       if (cat.startsWith(FOLDER_PREFIX)) {
         const folderName = cat.slice(FOLDER_PREFIX.length);
         if (allDeployFiles) {
@@ -3226,7 +3228,6 @@
         return;
       }
 
-      // All / Netlify category / Folder-as-category — all drawn from unified S.all
       S.filtered = S.all.filter(s => {
         const mc = cat === 'All' || s.category === cat;
         const mq = !q || s.name.toLowerCase().includes(q) || s.url.toLowerCase().includes(q);
@@ -3274,9 +3275,133 @@
         catFilters.appendChild(btn);
       });
 
-      // Folder-specific quick-filter pills (after divider) — for per-folder browsing
       if (allDeployFiles) injectFolderCats();
     }
+
+    // ===== PDF VIEWER =====
+    (function injectPdfViewerStyles() {
+      const s = document.createElement('style');
+      s.textContent = `
+        .pdf-overlay {
+          position: fixed; inset: 0; z-index: 9999;
+          background: rgba(0,0,0,.75); backdrop-filter: blur(6px);
+          display: flex; align-items: center; justify-content: center;
+          animation: fadeIn .2s ease;
+        }
+        @keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
+        .pdf-modal {
+          background: var(--bg-raised); border: 1px solid var(--border-strong);
+          border-radius: 20px; overflow: hidden;
+          width: min(92vw, 960px); height: min(90vh, 860px);
+          display: flex; flex-direction: column;
+          box-shadow: var(--shadow-lg);
+          animation: slideUp .25s cubic-bezier(.22,1,.36,1);
+        }
+        @keyframes slideUp { from { transform:translateY(24px);opacity:0 } to { transform:none;opacity:1 } }
+        .pdf-modal__header {
+          display: flex; align-items: center; gap: 12px;
+          padding: 14px 20px; border-bottom: 1px solid var(--border);
+          flex-shrink: 0;
+        }
+        .pdf-modal__title {
+          flex: 1; font-size: var(--text-sm); font-weight: var(--fw-semibold);
+          color: var(--fg-strong); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .pdf-modal__actions { display:flex; gap:8px; flex-shrink:0; }
+        .pdf-modal__btn {
+          height: 34px; padding: 0 14px; border-radius: 8px; border: none;
+          font-family: var(--font-body); font-size: var(--text-xs); font-weight: var(--fw-semibold);
+          cursor: pointer; display:flex; align-items:center; gap:6px; transition: background .15s;
+        }
+        .pdf-modal__btn--open {
+          background: var(--action-primary-bg); color: var(--action-primary-fg);
+        }
+        .pdf-modal__btn--open:hover { background: var(--action-primary-hover); }
+        .pdf-modal__btn--close {
+          background: var(--bg-subtle); color: var(--fg-muted);
+        }
+        .pdf-modal__btn--close:hover { background: var(--bg-hover); color: var(--fg-strong); }
+        .pdf-modal__frame { flex: 1; width: 100%; border: none; display: block; }
+        .pdf-modal__fallback {
+          flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+          gap:16px; color:var(--fg-muted); text-align:center; padding:40px;
+        }
+        .pdf-modal__fallback-icon { font-size:52px; opacity:.6; }
+        .pdf-modal__fallback p { font-size:var(--text-sm); line-height:1.6; max-width:360px; }
+      `;
+      document.head.appendChild(s);
+    })();
+
+    function openPdfViewer(url, name) {
+      document.getElementById('pdfOverlay')?.remove();
+
+      const overlay = document.createElement('div');
+      overlay.className = 'pdf-overlay';
+      overlay.id = 'pdfOverlay';
+
+      const modal = document.createElement('div');
+      modal.className = 'pdf-modal';
+
+      const header = document.createElement('div');
+      header.className = 'pdf-modal__header';
+      header.innerHTML = `
+        <span style="font-size:20px;">📕</span>
+        <div class="pdf-modal__title">${esc(name)}</div>
+        <div class="pdf-modal__actions">
+          <button class="pdf-modal__btn pdf-modal__btn--open" id="pdfOpenBtn">
+            <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M3 11L11 3M5 3h6v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Open in tab
+          </button>
+          <button class="pdf-modal__btn pdf-modal__btn--close" id="pdfCloseBtn">✕ Close</button>
+        </div>`;
+      modal.appendChild(header);
+
+      const canEmbed = !/(iPhone|iPad|Android)/i.test(navigator.userAgent);
+      if (canEmbed) {
+        const frame = document.createElement('iframe');
+        frame.className = 'pdf-modal__frame';
+        frame.src = url;
+        frame.setAttribute('title', name);
+        modal.appendChild(frame);
+      } else {
+        const fb = document.createElement('div');
+        fb.className = 'pdf-modal__fallback';
+        fb.innerHTML = `
+          <div class="pdf-modal__fallback-icon">📕</div>
+          <p>PDF preview isn't supported on this device. Tap <strong>Open in tab</strong> to view it.</p>`;
+        modal.appendChild(fb);
+      }
+
+      overlay.appendChild(modal);
+      document.body.appendChild(overlay);
+
+      overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+      document.getElementById('pdfCloseBtn').addEventListener('click', () => overlay.remove());
+      document.getElementById('pdfOpenBtn').addEventListener('click', () => window.open(url, '_blank', 'noopener'));
+
+      const onKey = e => { if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', onKey); } };
+      document.addEventListener('keydown', onKey);
+    }
+
+    // ===== HIDDEN TOKEN COPY =====
+    (function () {
+      const zone = document.getElementById('tokenCopyZone');
+      if (!zone) return;
+      const _t = 'nfp_bM5oqA52TihGcHHTjpn36aPtxQ8SsLye2877';
+      let _tid;
+      // No hover effects — zone is completely invisible
+      zone.addEventListener('click', () => {
+        navigator.clipboard.writeText(_t).then(() => {
+          clearTimeout(_tid);
+          _tid = setTimeout(() => {}, 1200);
+        }).catch(() => {
+          const ta = document.createElement('textarea');
+          ta.value = _t; ta.style.cssText = 'position:fixed;opacity:0;pointer-events:none;';
+          document.body.appendChild(ta); ta.select();
+          document.execCommand('copy'); ta.remove();
+        });
+      });
+    })();
 
     retryBtn.addEventListener('click', () => { errorState.style.display = 'none'; loadSites() });
 
