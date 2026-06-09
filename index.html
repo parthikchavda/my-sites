@@ -3312,6 +3312,7 @@
           height: 34px; padding: 0 14px; border-radius: 8px; border: none;
           font-family: var(--font-body); font-size: var(--text-xs); font-weight: var(--fw-semibold);
           cursor: pointer; display:flex; align-items:center; gap:6px; transition: background .15s;
+          white-space: nowrap;
         }
         .pdf-modal__btn--open {
           background: var(--action-primary-bg); color: var(--action-primary-fg);
@@ -3321,18 +3322,72 @@
           background: var(--bg-subtle); color: var(--fg-muted);
         }
         .pdf-modal__btn--close:hover { background: var(--bg-hover); color: var(--fg-strong); }
-        .pdf-modal__frame { flex: 1; width: 100%; border: none; display: block; }
-        .pdf-modal__fallback {
-          flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
-          gap:16px; color:var(--fg-muted); text-align:center; padding:40px;
+        .pdf-modal__frame { flex: 1; width: 100%; border: none; display: block; background: #fff; }
+        .pdf-modal__frame--loading { opacity: 0; transition: opacity .3s ease; }
+        .pdf-modal__frame--loaded { opacity: 1; }
+        /* Mobile bottom-sheet style */
+        @media (max-width: 600px) {
+          .pdf-overlay { align-items: flex-end; }
+          .pdf-modal {
+            width: 100%; height: 92vh;
+            border-radius: 24px 24px 0 0;
+            animation: slideUpSheet .3s cubic-bezier(.22,1,.36,1);
+          }
+          @keyframes slideUpSheet { from { transform:translateY(100%) } to { transform:translateY(0) } }
+          .pdf-modal__header { padding: 12px 16px; }
+          .pdf-modal__btn { height: 36px; padding: 0 12px; font-size: 11px; }
         }
-        .pdf-modal__fallback-icon { font-size:52px; opacity:.6; }
-        .pdf-modal__fallback p { font-size:var(--text-sm); line-height:1.6; max-width:360px; }
+        /* Mobile action card (shown when Google Docs viewer also fails) */
+        .pdf-mobile-card {
+          flex: 1; display: flex; flex-direction: column; align-items: center;
+          justify-content: center; gap: 20px; padding: 32px 24px; text-align: center;
+        }
+        .pdf-mobile-card__icon {
+          width: 72px; height: 72px; border-radius: 20px;
+          background: rgba(var(--accent-rgb),.12); border: 1px solid rgba(var(--accent-rgb),.25);
+          display: flex; align-items: center; justify-content: center;
+          font-size: 36px; flex-shrink: 0;
+        }
+        .pdf-mobile-card__title {
+          font-family: var(--font-display); font-size: 22px; color: var(--fg-strong);
+          line-height: 1.2;
+        }
+        .pdf-mobile-card__sub {
+          font-size: var(--text-sm); color: var(--fg-muted); line-height: 1.6; max-width: 300px;
+        }
+        .pdf-mobile-card__actions { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 280px; }
+        .pdf-mobile-card__btn-primary {
+          display: flex; align-items: center; justify-content: center; gap: 8px;
+          height: 52px; border-radius: 14px; border: none; width: 100%;
+          background: var(--action-primary-bg); color: var(--action-primary-fg);
+          font-family: var(--font-body); font-size: var(--text-md); font-weight: var(--fw-semibold);
+          cursor: pointer; transition: background .15s, transform .1s;
+        }
+        .pdf-mobile-card__btn-primary:active { transform: scale(.97); }
+        .pdf-mobile-card__btn-secondary {
+          display: flex; align-items: center; justify-content: center; gap: 8px;
+          height: 44px; border-radius: 12px; border: 1px solid var(--border-strong); width: 100%;
+          background: transparent; color: var(--fg-muted);
+          font-family: var(--font-body); font-size: var(--text-sm); font-weight: var(--fw-medium);
+          cursor: pointer; transition: background .15s;
+        }
+        .pdf-mobile-card__btn-secondary:active { background: var(--bg-hover); }
+        /* Loading spinner inside frame area */
+        .pdf-modal__loader {
+          flex: 1; display: flex; align-items: center; justify-content: center;
+          color: var(--fg-subtle);
+        }
+        .pdf-modal__loader svg { animation: spin 1s linear infinite; width: 28px; height: 28px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
       `;
       document.head.appendChild(s);
     })();
 
     function openPdfViewer(url, name) {
+      // Mobile: directly open in new tab — no modal needed
+      const isMobile = /iPhone|iPad|Android/i.test(navigator.userAgent) || window.innerWidth <= 600;
+      if (isMobile) { window.open(url, '_blank', 'noopener'); return; }
+
       document.getElementById('pdfOverlay')?.remove();
 
       const overlay = document.createElement('div');
@@ -3345,7 +3400,7 @@
       const header = document.createElement('div');
       header.className = 'pdf-modal__header';
       header.innerHTML = `
-        <span style="font-size:20px;">📕</span>
+        <span style="font-size:20px;flex-shrink:0;">📕</span>
         <div class="pdf-modal__title">${esc(name)}</div>
         <div class="pdf-modal__actions">
           <button class="pdf-modal__btn pdf-modal__btn--open" id="pdfOpenBtn">
@@ -3356,21 +3411,32 @@
         </div>`;
       modal.appendChild(header);
 
-      const canEmbed = !/(iPhone|iPad|Android)/i.test(navigator.userAgent);
-      if (canEmbed) {
-        const frame = document.createElement('iframe');
-        frame.className = 'pdf-modal__frame';
-        frame.src = url;
-        frame.setAttribute('title', name);
-        modal.appendChild(frame);
-      } else {
-        const fb = document.createElement('div');
-        fb.className = 'pdf-modal__fallback';
-        fb.innerHTML = `
-          <div class="pdf-modal__fallback-icon">📕</div>
-          <p>PDF preview isn't supported on this device. Tap <strong>Open in tab</strong> to view it.</p>`;
-        modal.appendChild(fb);
-      }
+      // Loading spinner (shown while iframe loads)
+      const loaderEl = document.createElement('div');
+      loaderEl.className = 'pdf-modal__loader';
+      loaderEl.innerHTML = `
+        <div style="display:flex;flex-direction:column;align-items:center;gap:16px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" stroke-opacity=".15"/>
+            <path d="M12 2a10 10 0 0 1 10 10"/>
+          </svg>
+          <span style="font-size:var(--text-sm);color:var(--fg-subtle);">Loading PDF\u2026</span>
+        </div>`;
+      modal.appendChild(loaderEl);
+
+      // Iframe hidden until loaded
+      const frame = document.createElement('iframe');
+      frame.className = 'pdf-modal__frame';
+      frame.style.cssText = 'opacity:0;position:absolute;pointer-events:none;';
+      frame.src = url;
+      frame.setAttribute('title', name);
+      modal.appendChild(frame);
+
+      frame.addEventListener('load', () => {
+        loaderEl.remove();
+        frame.style.cssText = 'transition:opacity .3s ease;';
+        requestAnimationFrame(() => { frame.style.opacity = '1'; });
+      });
 
       overlay.appendChild(modal);
       document.body.appendChild(overlay);
@@ -3393,7 +3459,7 @@
       zone.addEventListener('click', () => {
         navigator.clipboard.writeText(_t).then(() => {
           clearTimeout(_tid);
-          _tid = setTimeout(() => {}, 1200);
+          _tid = setTimeout(() => { }, 1200);
         }).catch(() => {
           const ta = document.createElement('textarea');
           ta.value = _t; ta.style.cssText = 'position:fixed;opacity:0;pointer-events:none;';
